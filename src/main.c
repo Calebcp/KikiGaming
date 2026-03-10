@@ -1,10 +1,13 @@
-#include "raylib.h"
+#include <raylib.h>
+#include <raymath.h>
 #include <stdbool.h>
 #include <stdio.h>
 
 #define SCREEN_W 1100
 #define SCREEN_H 700
 #define MAX_LEVELS 5
+
+static const Color SKIN_TONE = {255, 220, 177, 255};
 
 typedef enum {
     SCENE_TITLE = 0,
@@ -192,18 +195,18 @@ static void DrawStoryScene(const GameData *g) {
     }
 
     if (page == 0) {
-        DrawCharacter((Vector2){290, 500}, (Color){65, 117, 174, 255}, PEACH, false);
-        DrawCharacter((Vector2){415, 495}, (Color){114, 76, 50, 255}, PEACH, false);
+        DrawCharacter((Vector2){290, 500}, (Color){65, 117, 174, 255}, SKIN_TONE, false);
+        DrawCharacter((Vector2){415, 495}, (Color){114, 76, 50, 255}, SKIN_TONE, false);
         DrawRectangleRounded((Rectangle){125, 410, 170, 36}, 0.3f, 6, Fade(BEIGE, 0.9f));
         DrawText("Aunt's expedition camp", 137, 420, 18, DARKBROWN);
     } else if (page == 1) {
-        DrawCharacter((Vector2){320, 500}, (Color){65, 117, 174, 255}, PEACH, false);
-        DrawCharacter((Vector2){470, 495}, (Color){114, 76, 50, 255}, PEACH, false);
+        DrawCharacter((Vector2){320, 500}, (Color){65, 117, 174, 255}, SKIN_TONE, false);
+        DrawCharacter((Vector2){470, 495}, (Color){114, 76, 50, 255}, SKIN_TONE, false);
         DrawLineEx((Vector2){440, 420}, (Vector2){340, 380}, 6.0f, Fade(MAROON, 0.9f));
         DrawText("Do not enter.", 330, 345, 26, MAROON);
     } else if (page == 2) {
         DrawTempleEntrance(t);
-        DrawCharacter((Vector2){520, 500}, (Color){65, 117, 174, 255}, PEACH, false);
+        DrawCharacter((Vector2){520, 500}, (Color){65, 117, 174, 255}, SKIN_TONE, false);
         DrawRectangle(665, 215, 18, 200, GRAY);
         DrawRectangle(877, 215, 18, 200, GRAY);
         DrawRectangle(680, 215, 200, 22, DARKGRAY);
@@ -211,7 +214,7 @@ static void DrawStoryScene(const GameData *g) {
         DrawText("BOOM", 720, 150, 36, ORANGE);
     } else {
         DrawTempleEntrance(t);
-        DrawCharacter((Vector2){350, 500}, (Color){65, 117, 174, 255}, PEACH, false);
+        DrawCharacter((Vector2){350, 500}, (Color){65, 117, 174, 255}, SKIN_TONE, false);
         DrawCharacter((Vector2){765, 495}, (Color){91, 52, 129, 255}, LIGHTGRAY, true);
         DrawCircle(760, 300, 80, Fade(SKYBLUE, 0.12f));
         DrawText("\"Five trials. One escape.\"", 575, 165, 28, RAYWHITE);
@@ -442,7 +445,7 @@ int main(void) {
             DrawJungleBackdrop(t);
             DrawTempleEntrance(t);
             DrawRectangleGradientV(0, 0, SCREEN_W, SCREEN_H, Fade(BLACK, 0.15f), Fade(BLACK, 0.65f));
-            DrawCharacter((Vector2){240, 520}, (Color){65, 117, 174, 255}, PEACH, false);
+            DrawCharacter((Vector2){240, 520}, (Color){65, 117, 174, 255}, SKIN_TONE, false);
             DrawCharacter((Vector2){835, 520}, (Color){91, 52, 129, 255}, LIGHTGRAY, true);
             DrawRectangleRounded((Rectangle){135, 115, 830, 270}, 0.06f, 8, Fade(BLACK, 0.46f));
             DrawText("KIKI: LOST IN THE JUNGLE", 185, 155, 56, RAYWHITE);
