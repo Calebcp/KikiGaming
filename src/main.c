@@ -47,6 +47,14 @@ static const char *LEVEL_NAMES[MAX_LEVELS] = {
     "Temple Gate"
 };
 
+static const char *LEVEL_GOALS[MAX_LEVELS] = {
+    "Cross the flooded trail.",
+    "Defeat the spiders guarding the compass.",
+    "Answer the rune gate riddle.",
+    "Escape the serpent maze.",
+    "Choose the path that leads home."
+};
+
 static void StartLevel(GameData *g, int level) {
     g->currentLevel = level;
     g->levelTimer = 0.0f;
@@ -340,6 +348,7 @@ int main(void) {
                 DrawRectangleRounded(box, 0.2f, 8, c);
                 DrawText(TextFormat("LV %d", i + 1), (int)box.x + 26, (int)box.y + 20, 30, BLACK);
                 DrawText(LEVEL_NAMES[i], (int)box.x - 10, (int)box.y + 84, 18, DARKGRAY);
+                DrawText(LEVEL_GOALS[i], (int)box.x - 30, (int)box.y + 106, 15, GRAY);
             }
 
             if (game.gotReward) {
