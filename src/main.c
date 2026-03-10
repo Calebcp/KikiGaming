@@ -23,6 +23,7 @@ typedef struct {
     int currentLevel;
     bool unlocked[MAX_LEVELS];
     bool completed[MAX_LEVELS];
+    int storyPage;
 
     int hearts;
     bool win;
@@ -53,6 +54,36 @@ static const char *LEVEL_GOALS[MAX_LEVELS] = {
     "Answer the rune gate riddle.",
     "Escape the serpent maze.",
     "Choose the path that leads home."
+};
+
+static const char *STORY_HEADINGS[4] = {
+    "Expedition at Dusk",
+    "Warning at the Temple",
+    "The Gate Seals Shut",
+    "The Wizard's Curse"
+};
+
+static const char *STORY_LINES[4][3] = {
+    {
+        "A curious teenager travels with his aunt, the leader of an archaeological expedition.",
+        "While the team studies ruined statues, he notices an ancient temple hidden in jungle vines.",
+        "His curiosity pulls him away from the camp."
+    },
+    {
+        "His aunt warns him not to go inside.",
+        "The temple looks unstable, old, and wrong, but he sneaks forward anyway.",
+        "He steps over the broken threshold alone."
+    },
+    {
+        "Stone doors crash shut behind him.",
+        "Torches flare alive and the corridor begins to tremble as if the temple has awakened.",
+        "There is no path back outside."
+    },
+    {
+        "An old wizard appears from the shadows and reveals the curse.",
+        "Only someone who survives five ancient trials may leave this place alive.",
+        "Fail, and he becomes the next prisoner of the temple."
+    }
 };
 
 static void StartLevel(GameData *g, int level) {
@@ -105,6 +136,94 @@ static void DrawBanner(const char *title, const char *subtitle) {
     DrawRectangleRounded((Rectangle){18, 72, SCREEN_W - 36, 70}, 0.15f, 8, Fade(BEIGE, 0.92f));
     DrawText(title, 32, 86, 28, DARKGREEN);
     DrawText(subtitle, 32, 118, 20, DARKGRAY);
+}
+
+static void DrawJungleBackdrop(float t) {
+    DrawRectangleGradientV(0, 0, SCREEN_W, SCREEN_H, (Color){16, 54, 47, 255}, (Color){5, 14, 18, 255});
+    DrawCircle(900, 120, 170, Fade(GOLD, 0.18f));
+
+    for (int i = 0; i < 8; i++) {
+        int x = 80 + i * 140;
+        int sway = (int)(sinf(t * 1.2f + i * 0.7f) * 18.0f);
+        DrawRectangle(x + sway, 210, 30, 360, (Color){48, 30, 20, 255});
+        DrawCircle(x + 15 + sway, 200, 70, Fade(DARKGREEN, 0.95f));
+        DrawCircle(x - 20 + sway, 230, 55, Fade((Color){44, 101, 62, 255}, 0.95f));
+        DrawCircle(x + 50 + sway, 235, 48, Fade((Color){32, 83, 51, 255}, 0.95f));
+    }
+
+    DrawRectangle(0, 540, SCREEN_W, 160, (Color){26, 58, 31, 255});
+    for (int i = 0; i < 14; i++) {
+        int vineX = 35 + i * 85;
+        int vineSwing = (int)(cosf(t * 0.8f + i) * 12.0f);
+        DrawLineEx((Vector2){(float)vineX, 0}, (Vector2){(float)(vineX + vineSwing), 220}, 4.0f, Fade(LIME, 0.30f));
+    }
+}
+
+static void DrawTempleEntrance(float t) {
+    DrawRectangleRounded((Rectangle){640, 185, 280, 260}, 0.06f, 6, (Color){84, 80, 68, 255});
+    DrawRectangle(680, 215, 200, 200, (Color){45, 38, 33, 255});
+    DrawRectangleLinesEx((Rectangle){680, 215, 200, 200}, 5, Fade(GOLD, 0.35f));
+    DrawTriangle((Vector2){620, 190}, (Vector2){780, 75}, (Vector2){940, 190}, (Color){98, 92, 78, 255});
+    DrawCircle(780, 310, 22 + (int)(sinf(t * 2.4f) * 4.0f), Fade(GOLD, 0.25f));
+}
+
+static void DrawCharacter(Vector2 pos, Color body, Color head, bool staff) {
+    DrawCircleV((Vector2){pos.x, pos.y - 78}, 22, head);
+    DrawRectangleRounded((Rectangle){pos.x - 16, pos.y - 60, 32, 70}, 0.3f, 6, body);
+    DrawLineEx((Vector2){pos.x - 10, pos.y + 10}, (Vector2){pos.x - 22, pos.y + 48}, 4.0f, body);
+    DrawLineEx((Vector2){pos.x + 10, pos.y + 10}, (Vector2){pos.x + 22, pos.y + 48}, 4.0f, body);
+    DrawLineEx((Vector2){pos.x - 14, pos.y - 35}, (Vector2){pos.x - 32, pos.y - 2}, 4.0f, body);
+    DrawLineEx((Vector2){pos.x + 14, pos.y - 35}, (Vector2){pos.x + 32, pos.y - 2}, 4.0f, body);
+
+    if (staff) {
+        DrawLineEx((Vector2){pos.x + 28, pos.y - 55}, (Vector2){pos.x + 32, pos.y + 55}, 5.0f, GOLD);
+        DrawCircle((int)pos.x + 30, (int)pos.y - 62, 8, Fade(SKYBLUE, 0.9f));
+    }
+}
+
+static void DrawStoryScene(const GameData *g) {
+    float t = (float)GetTime();
+    int page = g->storyPage;
+
+    DrawJungleBackdrop(t);
+
+    if (page >= 1) {
+        DrawTempleEntrance(t);
+    }
+
+    if (page == 0) {
+        DrawCharacter((Vector2){290, 500}, (Color){65, 117, 174, 255}, PEACH, false);
+        DrawCharacter((Vector2){415, 495}, (Color){114, 76, 50, 255}, PEACH, false);
+        DrawRectangleRounded((Rectangle){125, 410, 170, 36}, 0.3f, 6, Fade(BEIGE, 0.9f));
+        DrawText("Aunt's expedition camp", 137, 420, 18, DARKBROWN);
+    } else if (page == 1) {
+        DrawCharacter((Vector2){320, 500}, (Color){65, 117, 174, 255}, PEACH, false);
+        DrawCharacter((Vector2){470, 495}, (Color){114, 76, 50, 255}, PEACH, false);
+        DrawLineEx((Vector2){440, 420}, (Vector2){340, 380}, 6.0f, Fade(MAROON, 0.9f));
+        DrawText("Do not enter.", 330, 345, 26, MAROON);
+    } else if (page == 2) {
+        DrawTempleEntrance(t);
+        DrawCharacter((Vector2){520, 500}, (Color){65, 117, 174, 255}, PEACH, false);
+        DrawRectangle(665, 215, 18, 200, GRAY);
+        DrawRectangle(877, 215, 18, 200, GRAY);
+        DrawRectangle(680, 215, 200, 22, DARKGRAY);
+        DrawRectangle(680, 393, 200, 22, DARKGRAY);
+        DrawText("BOOM", 720, 150, 36, ORANGE);
+    } else {
+        DrawTempleEntrance(t);
+        DrawCharacter((Vector2){350, 500}, (Color){65, 117, 174, 255}, PEACH, false);
+        DrawCharacter((Vector2){765, 495}, (Color){91, 52, 129, 255}, LIGHTGRAY, true);
+        DrawCircle(760, 300, 80, Fade(SKYBLUE, 0.12f));
+        DrawText("\"Five trials. One escape.\"", 575, 165, 28, RAYWHITE);
+    }
+
+    DrawRectangleRounded((Rectangle){60, 470, 980, 170}, 0.08f, 8, Fade(BLACK, 0.62f));
+    DrawText(STORY_HEADINGS[page], 92, 500, 34, GOLD);
+    DrawText(STORY_LINES[page][0], 92, 548, 24, RAYWHITE);
+    DrawText(STORY_LINES[page][1], 92, 582, 24, RAYWHITE);
+    DrawText(STORY_LINES[page][2], 92, 616, 24, RAYWHITE);
+    DrawText(TextFormat("Story %d/4", page + 1), 905, 500, 22, Fade(RAYWHITE, 0.85f));
+    DrawText("ENTER: next scene", 840, 615, 22, Fade(GOLD, 0.9f));
 }
 
 static void CompleteLevel(GameData *g) {
@@ -319,22 +438,33 @@ int main(void) {
         ClearBackground(RAYWHITE);
 
         if (scene == SCENE_TITLE) {
-            DrawRectangleGradientV(0, 0, SCREEN_W, SCREEN_H, Fade(DARKGREEN, 0.85f), Fade(BLACK, 0.85f));
-            DrawCircle(930, 120, 160, Fade(GOLD, 0.18f));
-            DrawText("KIKI: LOST IN THE JUNGLE", 195, 150, 50, RAYWHITE);
-            DrawText("A 2D dungeon escape story built in C with raylib", 240, 225, 28, Fade(RAYWHITE, 0.9f));
-            DrawText("Find the road back to your aunt.", 335, 270, 28, GOLD);
-            DrawText("Press ENTER to start", 385, 350, 30, RAYWHITE);
-            if (IsKeyPressed(KEY_ENTER)) scene = SCENE_STORY;
+            float t = (float)GetTime();
+            DrawJungleBackdrop(t);
+            DrawTempleEntrance(t);
+            DrawRectangleGradientV(0, 0, SCREEN_W, SCREEN_H, Fade(BLACK, 0.15f), Fade(BLACK, 0.65f));
+            DrawCharacter((Vector2){240, 520}, (Color){65, 117, 174, 255}, PEACH, false);
+            DrawCharacter((Vector2){835, 520}, (Color){91, 52, 129, 255}, LIGHTGRAY, true);
+            DrawRectangleRounded((Rectangle){135, 115, 830, 270}, 0.06f, 8, Fade(BLACK, 0.46f));
+            DrawText("KIKI: LOST IN THE JUNGLE", 185, 155, 56, RAYWHITE);
+            DrawText("A 2D story game in C + raylib", 335, 228, 30, Fade(RAYWHITE, 0.9f));
+            DrawText("A teenager enters a cursed temple and must survive five trials to return to his aunt.", 150, 285, 25, GOLD);
+            DrawText("Press ENTER to begin the opening cutscene", 298, 338, 28, RAYWHITE);
+            DrawText("Version 1 focuses on story setup, atmosphere, and trial progression.", 215, 610, 22, Fade(RAYWHITE, 0.85f));
+            if (IsKeyPressed(KEY_ENTER)) {
+                game.storyPage = 0;
+                scene = SCENE_STORY;
+            }
         }
 
         if (scene == SCENE_STORY) {
-            DrawRectangleRounded((Rectangle){70, 90, 960, 300}, 0.08f, 10, Fade(BEIGE, 0.95f));
-            DrawText("A young man is separated from his aunt during a jungle expedition.", 100, 140, 28, BLACK);
-            DrawText("He follows a false trail into ancient dungeon ruins hidden in the trees.", 100, 190, 28, BLACK);
-            DrawText("A trapped wizard offers help: survive five trials and the jungle will release you.", 100, 240, 28, BLACK);
-            DrawText("Press ENTER for the level map", 100, 315, 32, DARKGREEN);
-            if (IsKeyPressed(KEY_ENTER)) scene = SCENE_MAP;
+            DrawStoryScene(&game);
+            if (IsKeyPressed(KEY_ENTER)) {
+                if (game.storyPage < 3) {
+                    game.storyPage++;
+                } else {
+                    scene = SCENE_MAP;
+                }
+            }
         }
 
         if (scene == SCENE_MAP) {
