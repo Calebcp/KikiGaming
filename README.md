@@ -24,10 +24,20 @@ Why this platform:
 - `src/main.c` : complete playable foundation with scene state machine
 - `CMakeLists.txt` : build config using `find_package(raylib REQUIRED)`
 
+## Team Contribution Notes
+
+- Nouha primarily handled level setup, state reset, and progression flow.
+- Cerine primarily handled the main menu layout and menu interaction.
+- Abdullah primarily handled the character/scene visual helpers and simple graphics staging.
+- Nihad primarily handled the opening story cutscene and early narrative pacing.
+- Jasey primarily handled the first wizard dialogue sequence and dialogue flow.
+- Caleb served as the main programmer and primarily handled gameplay logic, scene flow, integration, and the main loop.
+
 ## Current gameplay foundations
 
-- Title scene
+- Title menu scene
 - Story intro scene
+- First dialogue scene
 - Map scene with unlocked/completed level boxes
 - Level 1: river escape
 - Level 2: spider nest combat
@@ -57,13 +67,6 @@ Why this platform:
 
 1. Install dev tools + raylib package (name varies by distro)
 2. Build with same CMake commands
-
-## Team split suggestion
-
-- Teammate A: narrative/dialogue system + cutscenes
-- Teammate B: player movement/combat polish
-- Teammate C: level scripts (LV1-LV5)
-- Teammate D: assets/audio/UI
 
 ## Next upgrades
 

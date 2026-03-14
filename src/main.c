@@ -11,6 +11,7 @@ static const Color SKIN_TONE = {255, 220, 177, 255};
 
 typedef enum {
     SCENE_TITLE = 0,
+    SCENE_DIALOGUE,
     SCENE_STORY,
     SCENE_MAP,
     SCENE_LEVEL,
@@ -26,7 +27,9 @@ typedef struct {
     int currentLevel;
     bool unlocked[MAX_LEVELS];
     bool completed[MAX_LEVELS];
+    int menuSelection;
     int storyPage;
+    int dialoguePage;
 
     int hearts;
     bool win;
@@ -89,6 +92,34 @@ static const char *STORY_LINES[4][3] = {
     }
 };
 
+static const char *MENU_ITEMS[3] = {
+    "Start Game",
+    "How To Play",
+    "Quit"
+};
+
+static const char *DIALOGUE_SPEAKERS[3] = {
+    "Wizard",
+    "Teenager",
+    "Wizard"
+};
+
+static const char *DIALOGUE_LINES[3][2] = {
+    {
+        "You crossed the cursed threshold, child. This temple now knows your name.",
+        "Survive five trials, and the gates may open again."
+    },
+    {
+        "I only wanted to look around. My aunt is outside waiting for me.",
+        "Tell me how to leave this place."
+    },
+    {
+        "Earn strength, wisdom, and courage. Fail, and you remain here as I did.",
+        "Press ENTER. Your first trial begins with escape."
+    }
+};
+
+// Nouha primarily built the level setup/state reset flow and kept trial progression organized.
 static void StartLevel(GameData *g, int level) {
     g->currentLevel = level;
     g->levelTimer = 0.0f;
@@ -141,6 +172,22 @@ static void DrawBanner(const char *title, const char *subtitle) {
     DrawText(subtitle, 32, 118, 20, DARKGRAY);
 }
 
+// Cerine focused mainly on the menu UI and navigation presentation.
+static void DrawMenuPanel(const GameData *g) {
+    DrawRectangleRounded((Rectangle){120, 120, 420, 470}, 0.07f, 8, Fade(BLACK, 0.58f));
+    DrawText("MAIN MENU", 175, 155, 42, RAYWHITE);
+    DrawText("Use W/S or arrow keys", 175, 205, 24, Fade(RAYWHITE, 0.82f));
+
+    for (int i = 0; i < 3; i++) {
+        Rectangle itemBox = {160, 255 + i * 92, 330, 64};
+        bool selected = g->menuSelection == i;
+        DrawRectangleRounded(itemBox, 0.25f, 8, selected ? GOLD : Fade(DARKBROWN, 0.85f));
+        DrawText(MENU_ITEMS[i], 205, 276 + i * 92, 30, selected ? BLACK : RAYWHITE);
+    }
+
+    DrawText("ENTER to select", 188, 545, 24, Fade(RAYWHITE, 0.84f));
+}
+
 static void DrawJungleBackdrop(float t) {
     DrawRectangleGradientV(0, 0, SCREEN_W, SCREEN_H, (Color){16, 54, 47, 255}, (Color){5, 14, 18, 255});
     DrawCircle(900, 120, 170, Fade(GOLD, 0.18f));
@@ -170,6 +217,7 @@ static void DrawTempleEntrance(float t) {
     DrawCircle(780, 310, 22 + (int)(sinf(t * 2.4f) * 4.0f), Fade(GOLD, 0.25f));
 }
 
+// Abdullah handled the simple character drawing and visual staging helpers.
 static void DrawCharacter(Vector2 pos, Color body, Color head, bool staff) {
     DrawCircleV((Vector2){pos.x, pos.y - 78}, 22, head);
     DrawRectangleRounded((Rectangle){pos.x - 16, pos.y - 60, 32, 70}, 0.3f, 6, body);
@@ -184,6 +232,7 @@ static void DrawCharacter(Vector2 pos, Color body, Color head, bool staff) {
     }
 }
 
+// Nihad primarily wrote the opening cutscene sequence and story pacing.
 static void DrawStoryScene(const GameData *g) {
     float t = (float)GetTime();
     int page = g->storyPage;
@@ -229,6 +278,27 @@ static void DrawStoryScene(const GameData *g) {
     DrawText("ENTER: next scene", 840, 615, 22, Fade(GOLD, 0.9f));
 }
 
+// Jasey built the first wizard dialogue scene and the dialogue text flow.
+static void DrawDialogueScene(const GameData *g) {
+    int page = g->dialoguePage;
+    float t = (float)GetTime();
+
+    DrawJungleBackdrop(t);
+    DrawTempleEntrance(t);
+    DrawRectangleGradientV(0, 0, SCREEN_W, SCREEN_H, Fade(BLACK, 0.08f), Fade(BLACK, 0.64f));
+    DrawCircle(792, 280, 105, Fade(SKYBLUE, 0.09f));
+    DrawCharacter((Vector2){280, 510}, (Color){65, 117, 174, 255}, SKIN_TONE, false);
+    DrawCharacter((Vector2){790, 500}, (Color){91, 52, 129, 255}, LIGHTGRAY, true);
+
+    DrawRectangleRounded((Rectangle){90, 470, 920, 165}, 0.08f, 8, Fade(BLACK, 0.72f));
+    DrawRectangleRounded((Rectangle){90, 430, 240, 42}, 0.3f, 6, Fade(GOLD, 0.92f));
+    DrawText(DIALOGUE_SPEAKERS[page], 115, 439, 28, BLACK);
+    DrawText(DIALOGUE_LINES[page][0], 122, 515, 28, RAYWHITE);
+    DrawText(DIALOGUE_LINES[page][1], 122, 555, 28, RAYWHITE);
+    DrawText(TextFormat("Dialogue %d/3", page + 1), 820, 438, 22, Fade(RAYWHITE, 0.88f));
+    DrawText("ENTER to continue", 798, 598, 22, Fade(GOLD, 0.95f));
+}
+
 static void CompleteLevel(GameData *g) {
     const int i = g->currentLevel - 1;
     g->completed[i] = true;
@@ -237,6 +307,7 @@ static void CompleteLevel(GameData *g) {
     }
 }
 
+// Caleb served as the main programmer and focused mainly on gameplay logic for the five trials and player challenge flow.
 static void UpdateLevel(GameData *g, Scene *scene) {
     float dt = GetFrameTime();
     DrawHearts(g->hearts);
@@ -440,6 +511,7 @@ int main(void) {
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
+        // Caleb also connected the scene flow and main loop as part of the core programming work.
         if (scene == SCENE_TITLE) {
             float t = (float)GetTime();
             DrawJungleBackdrop(t);
@@ -447,15 +519,29 @@ int main(void) {
             DrawRectangleGradientV(0, 0, SCREEN_W, SCREEN_H, Fade(BLACK, 0.15f), Fade(BLACK, 0.65f));
             DrawCharacter((Vector2){240, 520}, (Color){65, 117, 174, 255}, SKIN_TONE, false);
             DrawCharacter((Vector2){835, 520}, (Color){91, 52, 129, 255}, LIGHTGRAY, true);
-            DrawRectangleRounded((Rectangle){135, 115, 830, 270}, 0.06f, 8, Fade(BLACK, 0.46f));
-            DrawText("KIKI: LOST IN THE JUNGLE", 185, 155, 56, RAYWHITE);
-            DrawText("A 2D story game in C + raylib", 335, 228, 30, Fade(RAYWHITE, 0.9f));
-            DrawText("A teenager enters a cursed temple and must survive five trials to return to his aunt.", 150, 285, 25, GOLD);
-            DrawText("Press ENTER to begin the opening cutscene", 298, 338, 28, RAYWHITE);
-            DrawText("Version 1 focuses on story setup, atmosphere, and trial progression.", 215, 610, 22, Fade(RAYWHITE, 0.85f));
+            DrawMenuPanel(&game);
+            DrawRectangleRounded((Rectangle){570, 120, 390, 220}, 0.07f, 8, Fade(BLACK, 0.48f));
+            DrawText("KIKI: LOST IN THE JUNGLE", 600, 160, 42, RAYWHITE);
+            DrawText("C + raylib story game", 635, 215, 26, Fade(RAYWHITE, 0.88f));
+            DrawText("Get back to your aunt by surviving the temple's trials.", 592, 265, 22, GOLD);
+            DrawText("Version 1 demo build", 655, 300, 22, Fade(RAYWHITE, 0.82f));
+
+            if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP)) {
+                game.menuSelection = (game.menuSelection + 2) % 3;
+            }
+            if (IsKeyPressed(KEY_S) || IsKeyPressed(KEY_DOWN)) {
+                game.menuSelection = (game.menuSelection + 1) % 3;
+            }
             if (IsKeyPressed(KEY_ENTER)) {
-                game.storyPage = 0;
-                scene = SCENE_STORY;
+                if (game.menuSelection == 0) {
+                    game.storyPage = 0;
+                    scene = SCENE_STORY;
+                } else if (game.menuSelection == 1) {
+                    game.dialoguePage = 0;
+                    scene = SCENE_DIALOGUE;
+                } else {
+                    break;
+                }
             }
         }
 
@@ -464,6 +550,18 @@ int main(void) {
             if (IsKeyPressed(KEY_ENTER)) {
                 if (game.storyPage < 3) {
                     game.storyPage++;
+                } else {
+                    game.dialoguePage = 0;
+                    scene = SCENE_DIALOGUE;
+                }
+            }
+        }
+
+        if (scene == SCENE_DIALOGUE) {
+            DrawDialogueScene(&game);
+            if (IsKeyPressed(KEY_ENTER)) {
+                if (game.dialoguePage < 2) {
+                    game.dialoguePage++;
                 } else {
                     scene = SCENE_MAP;
                 }
