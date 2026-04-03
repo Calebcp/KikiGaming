@@ -17,12 +17,24 @@ typedef enum {
 
 bool InitGameAssets(void);
 void UnloadGameAssets(void);
+void UpdateGameAudio(void);
+void PlayAttackSound(void);
+void PlayHitSound(void);
+void SetAudioEnabled(bool enabled);
+bool IsAudioEnabled(void);
+bool IsAudioAvailable(void);
 
 bool HasBackgroundTexture(BackgroundId id);
 Texture2D GetBackgroundTexture(BackgroundId id);
 
 bool HasHeroTexture(void);
 Texture2D GetHeroTexture(void);
+bool HasHeroAttackLeftTexture(void);
+Texture2D GetHeroAttackLeftTexture(void);
+bool HasHeroAttackRightTexture(void);
+Texture2D GetHeroAttackRightTexture(void);
+bool HasHeartTexture(void);
+Texture2D GetHeartTexture(void);
 
 bool HasWizardTexture(void);
 Texture2D GetWizardTexture(void);
@@ -32,5 +44,8 @@ Texture2D GetAuntTexture(void);
 
 bool HasSpiderTexture(void);
 Texture2D GetSpiderTexture(void);
+
+bool HasDragonTexture(void);
+Texture2D GetDragonTexture(void);
 
 #endif

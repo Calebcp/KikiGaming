@@ -12,6 +12,7 @@
 #define MAX_ENEMIES 8
 #define MAX_ORBS 10
 #define MAX_GLYPHS 4
+#define MAX_HEARTS 10
 
 typedef enum {
     SCENE_TITLE = 0,
@@ -68,6 +69,8 @@ typedef struct {
     float levelTimer;
     float damageCooldown;
     float attackTimer;
+    float attackImpactTimer;
+    float dragonStaggerTimer;
     float dashTimer;
     float runeFlash;
     float endingDelay;
@@ -81,6 +84,18 @@ typedef struct {
     bool choiceSubmitted;
     int puzzleChoice;
     int activeQuizIndex;
+    int runeQuestionVariant[3];
+    int lastRuneOrder[3];
+    int lastRuneQuestionVariant[3];
+    bool hasLastRuneSetup;
+    bool dragonIntroActive;
+    bool dragonPhaseActive;
+    bool dragonDefeated;
+    int dragonOrbsCollected;
+    bool dragonFacingRight;
+    Vector2 wizardPos;
+    Vector2 attackImpactPos;
+    float wizardPhase;
 
     Enemy enemies[MAX_ENEMIES];
     int enemyCount;
@@ -115,9 +130,9 @@ extern const char *DIALOGUE_SPEAKERS[4];
 extern const char *DIALOGUE_LINES[4][2];
 extern const char *POST_LEVEL_SPEAKERS[4][2];
 extern const char *POST_LEVEL_LINES[4][2][2];
-extern const char *LEVEL_THREE_QUESTIONS[3];
-extern const char *LEVEL_THREE_OPTIONS[3][3];
-extern const int LEVEL_THREE_CORRECT[3];
+extern const char *LEVEL_THREE_QUESTIONS[3][4];
+extern const char *LEVEL_THREE_OPTIONS[3][4][3];
+extern const int LEVEL_THREE_CORRECT[3][4];
 
 Rectangle GetPlayerRect(const GameData *g);
 Rectangle GetEnemyRect(const Enemy *enemy);
@@ -130,6 +145,7 @@ void DrawJungleBackdrop(float t);
 void DrawTempleFrame(float t);
 void DrawHero(Vector2 pos, bool facingRight, bool attacking, float t);
 void DrawCharacter(Vector2 pos, Color body, Color head, bool staff);
+void DrawDragon(Vector2 pos, bool facingRight, float scale, float alpha);
 void DrawSpider(Vector2 pos, float scale, float t, Color tint);
 void DrawSnakeBoss(Vector2 pos, float t);
 void DrawHearts(int hearts);

@@ -47,6 +47,27 @@ static void DrawMistBand(float y, float alpha, float t) {
     }
 }
 
+static void DrawCanopyCluster(Vector2 center, float scale, float t, Color base, Color accent) {
+    float sway = sinf(t * 0.45f + center.x * 0.01f) * 10.0f * scale;
+    DrawCircleV((Vector2){center.x - 72.0f * scale + sway, center.y + 6.0f * scale}, 72.0f * scale, Fade(base, 0.94f));
+    DrawCircleV((Vector2){center.x + sway, center.y - 18.0f * scale}, 92.0f * scale, Fade(accent, 0.96f));
+    DrawCircleV((Vector2){center.x + 76.0f * scale + sway, center.y + 10.0f * scale}, 66.0f * scale, Fade(base, 0.92f));
+    DrawCircleV((Vector2){center.x - 10.0f * scale + sway, center.y + 52.0f * scale}, 82.0f * scale, Fade((Color){18, 58, 42, 255}, 0.92f));
+}
+
+static void DrawJungleTree(float x, float baseY, float scale, float t, Color trunk, Color foliageA, Color foliageB) {
+    float sway = sinf(t * 0.6f + x * 0.015f) * 7.0f * scale;
+    Rectangle trunkRect = {x - 20.0f * scale + sway, baseY - 245.0f * scale, 40.0f * scale, 270.0f * scale};
+    DrawRectangleRounded(trunkRect, 0.28f, 6, trunk);
+    DrawRectangleRounded((Rectangle){trunkRect.x + 8.0f * scale, trunkRect.y + 24.0f * scale, 10.0f * scale, 214.0f * scale}, 0.4f, 4, Fade((Color){88, 56, 30, 255}, 0.55f));
+    DrawLineEx((Vector2){trunkRect.x + 12.0f * scale, baseY - 6.0f * scale}, (Vector2){trunkRect.x - 28.0f * scale, baseY + 22.0f * scale}, 8.0f * scale, Fade(trunk, 0.95f));
+    DrawLineEx((Vector2){trunkRect.x + trunkRect.width - 10.0f * scale, baseY - 2.0f * scale}, (Vector2){trunkRect.x + trunkRect.width + 32.0f * scale, baseY + 20.0f * scale}, 7.0f * scale, Fade(trunk, 0.92f));
+
+    DrawCanopyCluster((Vector2){x + sway, baseY - 248.0f * scale}, 1.02f * scale, t, foliageA, foliageB);
+    DrawCanopyCluster((Vector2){x - 58.0f * scale + sway, baseY - 220.0f * scale}, 0.72f * scale, t + 0.3f, foliageB, foliageA);
+    DrawCanopyCluster((Vector2){x + 66.0f * scale + sway, baseY - 210.0f * scale}, 0.68f * scale, t + 0.6f, foliageA, foliageB);
+}
+
 void DrawJungleBackdrop(float t) {
     if (HasBackgroundTexture(BG_INTRO)) {
         DrawFullscreenTexture(GetBackgroundTexture(BG_INTRO), 0.42f);
@@ -55,25 +76,46 @@ void DrawJungleBackdrop(float t) {
     DrawCircleGradient(1020, 135, 150, Fade(ACCENT_GOLD, 0.35f), BLANK);
     DrawCircleGradient(220, 90, 110, Fade(CURSE_BLUE, 0.16f), BLANK);
 
-    for (int i = 0; i < 10; i++) {
-        int x = 40 + i * 130;
-        int sway = (int)(sinf(t * 0.9f + i * 0.6f) * 16.0f);
-        DrawRectangle(x + sway, 220, 28, 340, (Color){52, 34, 18, 255});
-        DrawCircle(x + 12 + sway, 205, 82, CANOPY_A);
-        DrawCircle(x - 22 + sway, 240, 64, CANOPY_B);
-        DrawCircle(x + 46 + sway, 238, 58, Fade((Color){62, 129, 88, 255}, 0.95f));
+    DrawRectangleGradientV(0, 166, SCREEN_W, 280, Fade((Color){10, 32, 24, 255}, 0.22f), Fade((Color){6, 18, 14, 255}, 0.68f));
+    for (int i = 0; i < 11; i++) {
+        float ridgeX = -30.0f + i * 132.0f;
+        DrawTriangle(
+            (Vector2){ridgeX, 408},
+            (Vector2){ridgeX + 88.0f, 278.0f + sinf(t * 0.15f + i) * 12.0f},
+            (Vector2){ridgeX + 176.0f, 408},
+            Fade((Color){14, 36, 30, 255}, 0.68f));
     }
 
-    for (int i = 0; i < 14; i++) {
-        float vineX = 25.0f + i * 93.0f;
-        float swing = cosf(t * 0.85f + i) * 18.0f;
-        DrawLineEx((Vector2){vineX, 0}, (Vector2){vineX + swing, 245}, 4.0f, Fade(LIME, 0.28f));
-        DrawCircleV((Vector2){vineX + swing, 245}, 8, Fade(LIME, 0.20f));
+    for (int i = 0; i < 9; i++) {
+        float x = 70.0f + i * 145.0f;
+        float y = 232.0f + (i % 2) * 18.0f;
+        DrawCanopyCluster((Vector2){x, y}, 0.95f, t + i * 0.2f, (Color){20, 60, 43, 255}, (Color){28, 82, 58, 255});
     }
 
-    DrawRectangle(0, 565, SCREEN_W, 155, (Color){31, 78, 44, 255});
-    DrawRectangle(0, 600, SCREEN_W, 120, (Color){22, 55, 31, 255});
+    DrawJungleTree(126.0f, 584.0f, 1.18f, t, (Color){70, 44, 23, 255}, (Color){18, 70, 49, 255}, (Color){33, 102, 71, 255});
+    DrawJungleTree(326.0f, 578.0f, 0.94f, t + 0.3f, (Color){78, 48, 29, 255}, (Color){22, 74, 53, 255}, (Color){42, 112, 78, 255});
+    DrawJungleTree(574.0f, 588.0f, 1.08f, t + 0.5f, (Color){66, 40, 21, 255}, (Color){17, 66, 47, 255}, (Color){36, 98, 68, 255});
+    DrawJungleTree(816.0f, 582.0f, 0.92f, t + 0.9f, (Color){72, 44, 25, 255}, (Color){24, 76, 54, 255}, (Color){39, 109, 75, 255});
+    DrawJungleTree(1088.0f, 590.0f, 1.24f, t + 1.1f, (Color){62, 38, 20, 255}, (Color){15, 62, 45, 255}, (Color){32, 92, 66, 255});
+
+    for (int i = 0; i < 15; i++) {
+        float vineX = 16.0f + i * 86.0f;
+        float swing = cosf(t * 0.85f + i * 0.65f) * (12.0f + (i % 3) * 5.0f);
+        float drop = 170.0f + (i % 4) * 22.0f;
+        DrawLineEx((Vector2){vineX, -8.0f}, (Vector2){vineX + swing, drop}, 4.0f, Fade((Color){72, 132, 78, 255}, 0.34f));
+        DrawCircleV((Vector2){vineX + swing, drop}, 7.0f, Fade((Color){92, 168, 94, 255}, 0.22f));
+    }
+
+    for (int i = 0; i < 24; i++) {
+        float leafX = 18.0f + i * 54.0f + sinf(t * 0.4f + i) * 10.0f;
+        float leafY = 470.0f + (i % 5) * 22.0f;
+        DrawEllipse((int)leafX, (int)leafY, 26, 10, Fade((Color){38, 92, 58, 255}, 0.78f));
+    }
+
+    DrawRectangleGradientV(0, 548, SCREEN_W, 172, (Color){28, 82, 48, 255}, (Color){16, 44, 27, 255});
+    DrawRectangleGradientV(0, 602, SCREEN_W, 118, Fade((Color){18, 54, 31, 255}, 0.98f), Fade((Color){8, 24, 15, 255}, 0.98f));
     DrawMistBand(530.0f, 0.07f, t);
+    DrawMistBand(590.0f, 0.05f, t + 0.8f);
 }
 
 void DrawTempleFrame(float t) {
@@ -86,13 +128,47 @@ void DrawTempleFrame(float t) {
 }
 
 void DrawHero(Vector2 pos, bool facingRight, bool attacking, float t) {
+    if (attacking) {
+        Texture2D attackTexture = {0};
+        bool hasAttackTexture = false;
+        if (facingRight && HasHeroAttackRightTexture()) {
+            attackTexture = GetHeroAttackRightTexture();
+            hasAttackTexture = true;
+        } else if (!facingRight && HasHeroAttackLeftTexture()) {
+            attackTexture = GetHeroAttackLeftTexture();
+            hasAttackTexture = true;
+        }
+
+        if (hasAttackTexture) {
+            float width = 182.0f;
+            float height = width * ((float)attackTexture.height / (float)attackTexture.width);
+            Rectangle source = {0, 0, (float)attackTexture.width, (float)attackTexture.height};
+            Rectangle dest = facingRight
+                ? (Rectangle){pos.x - 40.0f, pos.y - 72.0f, width, height}
+                : (Rectangle){pos.x - 106.0f, pos.y - 72.0f, width, height};
+            DrawTexturePro(attackTexture, source, dest, Vector2Zero(), 0.0f, Fade(RAYWHITE, 0.96f));
+            return;
+        }
+    }
+
     if (HasHeroTexture()) {
         DrawHumanoidTexture(GetHeroTexture(), pos.x + 18.0f, pos.y + 56.0f, 138.0f, attacking ? 0.95f : 0.90f, facingRight);
 
         if (attacking) {
             int dir = facingRight ? 1 : -1;
             Vector2 slashCenter = {pos.x + 18 + dir * 24.0f, pos.y + 34};
-            DrawRing(slashCenter, 18, 29, facingRight ? -35 : 145, facingRight ? 65 : 245, 16, Fade(ACCENT_GOLD, 0.80f));
+            float sweep = 0.5f + 0.5f * sinf(t * 34.0f);
+            DrawRing(slashCenter, 18, 38, facingRight ? -44 : 136, facingRight ? 80 : 260, 28, Fade(ACCENT_GOLD, 0.92f));
+            DrawRing(slashCenter, 30, 48, facingRight ? -58 : 122, facingRight ? 58 : 238, 22, Fade(RAYWHITE, 0.32f));
+            DrawLineEx(
+                (Vector2){slashCenter.x - dir * 4.0f, slashCenter.y - 18.0f},
+                (Vector2){slashCenter.x + dir * (42.0f + sweep * 10.0f), slashCenter.y + 7.0f},
+                6.0f, Fade(ACCENT_GOLD, 0.72f));
+            DrawLineEx(
+                (Vector2){slashCenter.x - dir * 10.0f, slashCenter.y - 2.0f},
+                (Vector2){slashCenter.x + dir * (28.0f + sweep * 8.0f), slashCenter.y + 24.0f},
+                4.0f, Fade(RAYWHITE, 0.65f));
+            DrawCircleV((Vector2){slashCenter.x + dir * 18.0f, slashCenter.y + 2.0f}, 8.0f + sweep * 4.0f, Fade(ACCENT_GOLD, 0.42f));
         }
         return;
     }
@@ -114,7 +190,18 @@ void DrawHero(Vector2 pos, bool facingRight, bool attacking, float t) {
 
     if (attacking) {
         Vector2 slashCenter = {pos.x + 18 + dir * 24.0f, pos.y + 34};
-        DrawRing(slashCenter, 18, 29, facingRight ? -35 : 145, facingRight ? 65 : 245, 16, Fade(ACCENT_GOLD, 0.80f));
+        float sweep = 0.5f + 0.5f * sinf(t * 34.0f);
+        DrawRing(slashCenter, 18, 38, facingRight ? -44 : 136, facingRight ? 80 : 260, 28, Fade(ACCENT_GOLD, 0.92f));
+        DrawRing(slashCenter, 30, 48, facingRight ? -58 : 122, facingRight ? 58 : 238, 22, Fade(RAYWHITE, 0.32f));
+        DrawLineEx(
+            (Vector2){slashCenter.x - dir * 4.0f, slashCenter.y - 18.0f},
+            (Vector2){slashCenter.x + dir * (42.0f + sweep * 10.0f), slashCenter.y + 7.0f},
+            6.0f, Fade(ACCENT_GOLD, 0.72f));
+        DrawLineEx(
+            (Vector2){slashCenter.x - dir * 10.0f, slashCenter.y - 2.0f},
+            (Vector2){slashCenter.x + dir * (28.0f + sweep * 8.0f), slashCenter.y + 24.0f},
+            4.0f, Fade(RAYWHITE, 0.65f));
+        DrawCircleV((Vector2){slashCenter.x + dir * 18.0f, slashCenter.y + 2.0f}, 8.0f + sweep * 4.0f, Fade(ACCENT_GOLD, 0.42f));
     }
 }
 
@@ -135,6 +222,25 @@ void DrawCharacter(Vector2 pos, Color body, Color head, bool staff) {
         DrawLineEx((Vector2){pos.x + 28, pos.y - 55}, (Vector2){pos.x + 32, pos.y + 55}, 5.0f, ACCENT_GOLD);
         DrawCircle((int)pos.x + 30, (int)pos.y - 62, 8, Fade(CURSE_BLUE, 0.9f));
     }
+}
+
+void DrawDragon(Vector2 pos, bool facingRight, float scale, float alpha) {
+    if (HasDragonTexture()) {
+        Texture2D texture = GetDragonTexture();
+        float width = 430.0f * scale;
+        float height = width * ((float)texture.height / (float)texture.width);
+        Rectangle source = {
+            facingRight ? 0.0f : (float)texture.width,
+            0.0f,
+            facingRight ? (float)texture.width : -(float)texture.width,
+            (float)texture.height
+        };
+        Rectangle dest = {pos.x - width * 0.5f, pos.y - height * 0.60f, width, height};
+        DrawTexturePro(texture, source, dest, Vector2Zero(), 0.0f, Fade(RAYWHITE, alpha));
+        return;
+    }
+
+    DrawSnakeBoss(pos, GetTime());
 }
 
 void DrawSpider(Vector2 pos, float scale, float t, Color tint) {
@@ -172,12 +278,33 @@ void DrawSnakeBoss(Vector2 pos, float t) {
 }
 
 void DrawHearts(int hearts) {
-    DrawText("SPIRIT", 24, 18, 18, Fade(RAYWHITE, 0.82f));
-    for (int i = 0; i < hearts; i++) {
-        int x = 28 + i * 34;
-        DrawCircle(x, 48, 9, DANGER_RED);
-        DrawCircle(x + 12, 48, 9, DANGER_RED);
-        DrawTriangle((Vector2){x - 8, 50}, (Vector2){x + 20, 50}, (Vector2){x + 6, 70}, DANGER_RED);
+    hearts = Clamp(hearts, 0, MAX_HEARTS);
+    DrawText("HEARTS", 24, 18, 20, Fade(RAYWHITE, 0.88f));
+
+    for (int i = 0; i < MAX_HEARTS; i++) {
+        int row = i / 5;
+        int col = i % 5;
+        int x = 28 + col * 42;
+        int y = 44 + row * 36;
+        Color fill = i < hearts ? DANGER_RED : Fade((Color){68, 38, 44, 255}, 0.95f);
+        Color outline = i < hearts ? Fade(RAYWHITE, 0.16f) : Fade(RAYWHITE, 0.10f);
+
+        if (HasHeartTexture()) {
+            Texture2D heart = GetHeartTexture();
+            Rectangle source = {0, 0, (float)heart.width, (float)heart.height};
+            Rectangle dest = {(float)x, (float)y, 28.0f, 28.0f};
+            Color tint = i < hearts ? RAYWHITE : Fade((Color){92, 56, 62, 255}, 0.58f);
+            DrawTexturePro(heart, source, dest, Vector2Zero(), 0.0f, tint);
+            if (i >= hearts) {
+                DrawRectangleRounded((Rectangle){(float)x, (float)y, 28.0f, 28.0f}, 0.3f, 4, Fade(BLACK, 0.28f));
+            }
+        } else {
+            DrawCircle(x, y, 9, fill);
+            DrawCircle(x + 12, y, 9, fill);
+            DrawTriangle((Vector2){x - 8, y + 2}, (Vector2){x + 20, y + 2}, (Vector2){x + 6, y + 22}, fill);
+            DrawCircleLines(x, y, 9, outline);
+            DrawCircleLines(x + 12, y, 9, outline);
+        }
     }
 }
 
@@ -242,8 +369,24 @@ void DrawWrappedTextBlock(const char *text, Rectangle bounds, float fontSize, fl
     }
 }
 
+static void DrawFittedText(const char *text, Rectangle bounds, float fontSize, float spacing, Color color) {
+    Font font = GetFontDefault();
+    float size = fontSize;
+    Vector2 measured = MeasureTextEx(font, text, size, spacing);
+
+    while (measured.x > bounds.width && size > 12.0f) {
+        size -= 1.0f;
+        measured = MeasureTextEx(font, text, size, spacing);
+    }
+
+    DrawTextEx(font, text, (Vector2){bounds.x, bounds.y}, size, spacing, color);
+}
+
 void DrawTitleScene(const GameData *g) {
     float t = (float)GetTime();
+    bool audioEnabled = IsAudioEnabled();
+    bool audioAvailable = IsAudioAvailable();
+    bool toggleHovered = CheckCollisionPointRec(GetMousePosition(), (Rectangle){314, 628, 132, 36});
     DrawJungleBackdrop(t);
     if (HasBackgroundTexture(BG_INTRO)) {
         DrawFullscreenTexture(GetBackgroundTexture(BG_INTRO), 0.74f);
@@ -265,10 +408,27 @@ void DrawTitleScene(const GameData *g) {
         Rectangle box = {130, 362 + i * 82, 344, 58};
         bool selected = g->menuSelection == i;
         DrawRectangleRounded(box, 0.25f, 6, selected ? ACCENT_GOLD : Fade((Color){41, 31, 20, 255}, 0.92f));
-        DrawText(MENU_ITEMS[i], 158, 380 + i * 82, 28, selected ? BLACK : RAYWHITE);
+        DrawFittedText(MENU_ITEMS[i], (Rectangle){158, 378 + i * 82, 290, 28}, 28.0f, 1.0f, selected ? BLACK : RAYWHITE);
     }
 
+    Rectangle audioPanel = {130, 616, 344, 62};
+    Rectangle togglePill = {314, 628, 132, 36};
+    DrawRectangleRounded(audioPanel, 0.24f, 8, Fade((Color){18, 21, 28, 255}, 0.94f));
+    DrawRectangleLinesEx(audioPanel, 2.0f, Fade(audioEnabled ? ACCENT_GOLD : RAYWHITE, toggleHovered ? 0.45f : 0.18f));
+    DrawText("Audio", 154, 634, 28, RAYWHITE);
+    DrawRectangleRounded(togglePill, 0.5f, 8,
+                         !audioAvailable ? Fade((Color){82, 82, 82, 255}, 0.92f)
+                                         : (audioEnabled ? Fade((Color){60, 146, 94, 255}, 0.98f)
+                                                         : Fade((Color){112, 42, 48, 255}, 0.98f)));
+    DrawRectangleLinesEx(togglePill, 2.0f, Fade(RAYWHITE, toggleHovered ? 0.48f : 0.22f));
+    DrawCircleV((Vector2){audioEnabled && audioAvailable ? 425.0f : 335.0f, 646.0f}, 13.0f, Fade(RAYWHITE, 0.95f));
+    DrawText(!audioAvailable ? "N/A" : (audioEnabled ? "ON" : "OFF"), 346, 635, 22, BLACK);
+    DrawWrappedTextBlock(!audioAvailable ? "Audio device did not initialize"
+                                         : (audioEnabled ? "Jungle ambience and combat audio enabled" : "All game audio muted"),
+                         (Rectangle){488, 632, 300, 40}, 18.0f, 1.0f, Fade(RAYWHITE, 0.82f));
+
     DrawText("W/S or arrows to select, ENTER to confirm", 132, 576, 20, Fade(RAYWHITE, 0.82f));
+    DrawText("Click the audio toggle or press M to mute/unmute", 132, 688, 18, Fade(RAYWHITE, 0.74f));
     DrawText("Temple build: substantial combat and story pass", 790, 630, 24, Fade(RAYWHITE, 0.72f));
 }
 
@@ -364,8 +524,8 @@ void DrawMapScene(const GameData *g) {
     }
     DrawRectangleGradientV(0, 0, SCREEN_W, SCREEN_H, Fade(BLACK, 0.15f), Fade(BLACK, 0.52f));
     DrawText("Temple Trial Map", 440, 54, 46, RAYWHITE);
-    DrawText("Press 1-5 to enter any unlocked chamber", 380, 106, 28, Fade(RAYWHITE, 0.82f));
-    DrawText("The chambers now demand movement, combat, and decisions under pressure.", 225, 144, 24, Fade(ACCENT_GOLD, 0.92f));
+    DrawFittedText("Press 1-5 to enter any unlocked chamber", (Rectangle){330, 106, 620, 28}, 28.0f, 1.0f, Fade(RAYWHITE, 0.82f));
+    DrawFittedText("The chambers now demand movement, combat, and decisions under pressure.", (Rectangle){180, 144, 900, 24}, 24.0f, 1.0f, Fade(ACCENT_GOLD, 0.92f));
 
     Vector2 nodes[MAX_LEVELS] = {
         {145, 300}, {390, 470}, {640, 245}, {885, 455}, {1110, 240}
@@ -383,13 +543,14 @@ void DrawMapScene(const GameData *g) {
         DrawCircleV(nodes[i], 46, core);
         DrawRing(nodes[i], 54, 62, 0, 360, 48, Fade(ACCENT_GOLD, unlocked ? 0.55f : 0.18f));
         DrawText(TextFormat("%d", i + 1), (int)nodes[i].x - 8, (int)nodes[i].y - 16, 34, BLACK);
-        DrawText(LEVEL_NAMES[i], (int)nodes[i].x - 82, (int)nodes[i].y + 72, 24, RAYWHITE);
-        DrawText(LEVEL_GOALS[i], (int)nodes[i].x - 118, (int)nodes[i].y + 102, 18, Fade(RAYWHITE, 0.72f));
+        DrawFittedText(LEVEL_NAMES[i], (Rectangle){nodes[i].x - 110.0f, nodes[i].y + 72.0f, 220.0f, 24.0f}, 24.0f, 1.0f, RAYWHITE);
+        DrawWrappedTextBlock(LEVEL_GOALS[i], (Rectangle){nodes[i].x - 124.0f, nodes[i].y + 102.0f, 248.0f, 48.0f}, 18.0f, 1.0f, Fade(RAYWHITE, 0.72f));
     }
 
     if (g->compassEarned) {
-        DrawRectangleRounded((Rectangle){420, 610, 438, 50}, 0.3f, 6, Fade(ACCENT_GOLD, 0.92f));
-        DrawText("Relic secured: Jungle Compass. Final chamber route is now visible.", 442, 625, 20, BLACK);
+        Rectangle relicBox = {360, 598, 560, 72};
+        DrawRectangleRounded(relicBox, 0.3f, 6, Fade(ACCENT_GOLD, 0.94f));
+        DrawWrappedTextBlock("Relic secured: Jungle Compass. Final chamber route is now visible.", (Rectangle){384, 614, 510, 42}, 20.0f, 1.0f, BLACK);
     }
 }
 

@@ -148,19 +148,53 @@ const char *POST_LEVEL_LINES[4][2][2] = {
     }
 };
 
-const char *LEVEL_THREE_QUESTIONS[3] = {
-    "What rises each morning without speaking, but tells the whole jungle when to wake?",
-    "What answers your shout in a stone chamber, but has no mouth of its own?",
-    "What holds a tree upright, hidden underground, though no traveler sees it first?"
+const char *LEVEL_THREE_QUESTIONS[3][4] = {
+    {
+        "What rises each morning without speaking, but tells the whole jungle when to wake?",
+        "What leaves first light on every stone, though no hand carries it through the ruins?",
+        "What returns after every night, impossible to cage and impossible to bargain with?",
+        "What climbs the horizon with no footsteps, yet every shadow obeys it?"
+    },
+    {
+        "What answers your shout in a stone chamber, but has no mouth of its own?",
+        "What repeats your fear inside the temple, yet never thinks a thought itself?",
+        "What follows a voice through empty halls, but disappears when the speaker stops?",
+        "What sounds alive in the dark for a moment, though it owns no lungs and no tongue?"
+    },
+    {
+        "What holds a tree upright, hidden underground, though no traveler sees it first?",
+        "What drinks in silence beneath the earth, anchoring the giant above it?",
+        "What grips the soil like a buried hand, though wind and rain cannot pull it loose?",
+        "What hides below the forest floor, carrying weight without ever seeing the sun?"
+    }
 };
 
-const char *LEVEL_THREE_OPTIONS[3][3] = {
-    {"1  The moon", "2  The sun", "3  The river"},
-    {"1  Echo", "2  Spider", "3  Torch"},
-    {"1  Root", "2  Wind", "3  Feather"}
+const char *LEVEL_THREE_OPTIONS[3][4][3] = {
+    {
+        {"1  The moon", "2  The sun", "3  The river"},
+        {"1  The sun", "2  The vine", "3  The drum"},
+        {"1  The thunder", "2  The tide", "3  The sun"},
+        {"1  The flame", "2  The sun", "3  The owl"}
+    },
+    {
+        {"1  Echo", "2  Spider", "3  Torch"},
+        {"1  Reflection", "2  Echo", "3  Smoke"},
+        {"1  Footstep", "2  Rain", "3  Echo"},
+        {"1  Echo", "2  Drum", "3  Wind"}
+    },
+    {
+        {"1  Root", "2  Wind", "3  Feather"},
+        {"1  Root", "2  River", "3  Ember"},
+        {"1  Moss", "2  Root", "3  Cloud"},
+        {"1  Root", "2  Stone", "3  Shadow"}
+    }
 };
 
-const int LEVEL_THREE_CORRECT[3] = {2, 1, 1};
+const int LEVEL_THREE_CORRECT[3][4] = {
+    {2, 1, 3, 2},
+    {1, 2, 3, 1},
+    {1, 1, 2, 1}
+};
 
 Rectangle GetPlayerRect(const GameData *g) {
     return (Rectangle){g->playerPos.x + 6.0f, g->playerPos.y + 10.0f, 24.0f, 46.0f};
@@ -174,6 +208,8 @@ static void ResetTransientState(GameData *g) {
     g->levelTimer = 0.0f;
     g->damageCooldown = 0.0f;
     g->attackTimer = 0.0f;
+    g->attackImpactTimer = 0.0f;
+    g->dragonStaggerTimer = 0.0f;
     g->dashTimer = 0.0f;
     g->runeFlash = 0.0f;
     g->playerVel = Vector2Zero();
@@ -188,12 +224,61 @@ static void ResetTransientState(GameData *g) {
     g->onGround = false;
     g->canDoubleJump = false;
     g->activeQuizIndex = -1;
+    g->dragonIntroActive = false;
+    g->dragonPhaseActive = false;
+    g->dragonDefeated = false;
+    g->dragonOrbsCollected = 0;
+    g->dragonFacingRight = true;
+    g->wizardPhase = 0.0f;
+    g->attackImpactPos = Vector2Zero();
+}
+
+static void ConfigureLevelThreeRun(GameData *g) {
+    int previousOrder[3] = {g->lastRuneOrder[0], g->lastRuneOrder[1], g->lastRuneOrder[2]};
+    int previousVariants[3] = {
+        g->lastRuneQuestionVariant[0],
+        g->lastRuneQuestionVariant[1],
+        g->lastRuneQuestionVariant[2]
+    };
+
+    do {
+        g->runeOrder[0] = 0;
+        g->runeOrder[1] = 1;
+        g->runeOrder[2] = 2;
+
+        for (int i = 2; i > 0; i--) {
+            int swapIndex = GetRandomValue(0, i);
+            int temp = g->runeOrder[i];
+            g->runeOrder[i] = g->runeOrder[swapIndex];
+            g->runeOrder[swapIndex] = temp;
+        }
+
+        for (int i = 0; i < 3; i++) {
+            g->runeQuestionVariant[i] = GetRandomValue(0, 3);
+        }
+    } while (g->hasLastRuneSetup &&
+             g->runeOrder[0] == previousOrder[0] &&
+             g->runeOrder[1] == previousOrder[1] &&
+             g->runeOrder[2] == previousOrder[2] &&
+             g->runeQuestionVariant[0] == previousVariants[0] &&
+             g->runeQuestionVariant[1] == previousVariants[1] &&
+             g->runeQuestionVariant[2] == previousVariants[2]);
+
+    for (int i = 0; i < 3; i++) {
+        g->lastRuneOrder[i] = g->runeOrder[i];
+        g->lastRuneQuestionVariant[i] = g->runeQuestionVariant[i];
+    }
+    g->hasLastRuneSetup = true;
 }
 
 void ResetGame(GameData *g) {
     *g = (GameData){0};
     g->unlocked[0] = true;
-    g->hearts = 5;
+    g->hearts = MAX_HEARTS;
+    g->menuSelection = 0;
+    g->storyPage = 0;
+    g->dialoguePage = 0;
+    g->postLevelDialogue = false;
     g->facingRight = true;
     g->playerAim = (Vector2){1.0f, 0.0f};
     g->activeQuizIndex = -1;
@@ -217,12 +302,15 @@ void StartLevel(GameData *g, int level) {
         g->playerPos = (Vector2){130, 560};
         g->facingRight = true;
         g->onGround = true;
-        g->enemyCount = 5;
-        g->enemies[0] = (Enemy){(Vector2){690, 560}, Vector2Zero(), 24, 110.0f, true, ENEMY_HUNTER, 0.0f};
-        g->enemies[1] = (Enemy){(Vector2){870, 505}, Vector2Zero(), 22, 138.0f, true, ENEMY_RUSHER, 1.3f};
-        g->enemies[2] = (Enemy){(Vector2){980, 610}, Vector2Zero(), 20, 105.0f, true, ENEMY_ORBITER, 2.1f};
-        g->enemies[3] = (Enemy){(Vector2){570, 430}, Vector2Zero(), 21, 122.0f, true, ENEMY_HUNTER, 0.8f};
-        g->enemies[4] = (Enemy){(Vector2){760, 360}, Vector2Zero(), 20, 150.0f, true, ENEMY_RUSHER, 2.8f};
+        g->enemyCount = 8;
+        g->enemies[0] = (Enemy){(Vector2){170, 205}, Vector2Zero(), 24, 128.0f, true, ENEMY_HUNTER, 0.0f};
+        g->enemies[1] = (Enemy){(Vector2){630, 192}, Vector2Zero(), 22, 172.0f, true, ENEMY_RUSHER, 1.1f};
+        g->enemies[2] = (Enemy){(Vector2){1100, 225}, Vector2Zero(), 20, 120.0f, true, ENEMY_ORBITER, 2.0f};
+        g->enemies[3] = (Enemy){(Vector2){1104, 585}, Vector2Zero(), 23, 134.0f, true, ENEMY_HUNTER, 2.8f};
+        g->enemies[4] = (Enemy){(Vector2){710, 618}, Vector2Zero(), 21, 182.0f, true, ENEMY_RUSHER, 3.4f};
+        g->enemies[5] = (Enemy){(Vector2){208, 610}, Vector2Zero(), 20, 118.0f, true, ENEMY_ORBITER, 4.2f};
+        g->enemies[6] = (Enemy){(Vector2){115, 430}, Vector2Zero(), 23, 138.0f, true, ENEMY_HUNTER, 5.0f};
+        g->enemies[7] = (Enemy){(Vector2){1180, 420}, Vector2Zero(), 22, 176.0f, true, ENEMY_RUSHER, 5.8f};
     } else if (level == 3) {
         g->playerPos = (Vector2){110, 570};
         g->facingRight = true;
@@ -230,9 +318,7 @@ void StartLevel(GameData *g, int level) {
         g->glyphs[0] = (Glyph){(Rectangle){260, 160, 110, 110}, true};
         g->glyphs[1] = (Glyph){(Rectangle){620, 420, 110, 110}, true};
         g->glyphs[2] = (Glyph){(Rectangle){1010, 170, 110, 110}, true};
-        g->runeOrder[0] = 2;
-        g->runeOrder[1] = 0;
-        g->runeOrder[2] = 1;
+        ConfigureLevelThreeRun(g);
         g->orbCount = 5;
         for (int i = 0; i < g->orbCount; i++) {
             g->orbs[i] = (Orb){(Vector2){260.0f + i * 180.0f, 350.0f + ((i % 2) * 70.0f)}, Vector2Zero(), 14.0f, true};
@@ -244,6 +330,13 @@ void StartLevel(GameData *g, int level) {
     } else if (level == 5) {
         g->playerPos = (Vector2){88, 560};
         g->facingRight = true;
+        g->wizardPos = (Vector2){960, 506};
+        g->wizardPhase = GetRandomValue(0, 628) / 100.0f;
+        g->dragonIntroActive = false;
+        g->dragonPhaseActive = false;
+        g->dragonDefeated = false;
+        g->dragonOrbsCollected = 0;
+        g->dragonFacingRight = false;
         g->glyphCount = 3;
         g->glyphs[0] = (Glyph){(Rectangle){270, 208, 44, 44}, true};
         g->glyphs[1] = (Glyph){(Rectangle){690, 518, 44, 44}, true};

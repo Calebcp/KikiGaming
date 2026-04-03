@@ -3,6 +3,7 @@
 int main(void) {
     InitWindow(SCREEN_W, SCREEN_H, "KiKi - Temple Breaker");
     SetTargetFPS(60);
+    InitAudioDevice();
     InitGameAssets();
 
     GameData game = {0};
@@ -10,11 +11,21 @@ int main(void) {
     ResetGame(&game);
 
     while (!WindowShouldClose()) {
+        UpdateGameAudio();
         BeginDrawing();
         ClearBackground(BLACK);
 
         if (scene == SCENE_TITLE) {
             DrawTitleScene(&game);
+            Rectangle audioToggle = {314, 628, 132, 36};
+            bool titleConfirm = IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_KP_ENTER) || IsKeyPressed(KEY_SPACE);
+
+            if (IsKeyPressed(KEY_M)) {
+                SetAudioEnabled(!IsAudioEnabled());
+            }
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(GetMousePosition(), audioToggle)) {
+                SetAudioEnabled(!IsAudioEnabled());
+            }
 
             if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP)) {
                 game.menuSelection = (game.menuSelection + 2) % 3;
@@ -22,7 +33,7 @@ int main(void) {
             if (IsKeyPressed(KEY_S) || IsKeyPressed(KEY_DOWN)) {
                 game.menuSelection = (game.menuSelection + 1) % 3;
             }
-            if (IsKeyPressed(KEY_ENTER)) {
+            if (titleConfirm) {
                 if (game.menuSelection == 0) {
                     game.storyPage = 0;
                     game.postLevelDialogue = false;
@@ -101,6 +112,7 @@ int main(void) {
     }
 
     UnloadGameAssets();
+    CloseAudioDevice();
     CloseWindow();
     return 0;
 }
