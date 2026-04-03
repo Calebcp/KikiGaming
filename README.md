@@ -68,6 +68,22 @@ Why this platform:
 1. Install dev tools + raylib package (name varies by distro)
 2. Build with same CMake commands
 
+### Build a Windows `.exe` from macOS
+
+If you want to send the game to someone on Windows, this repo includes a cross-build script that produces a standalone `.exe`.
+
+1. Install the Windows compiler:
+   - `brew install mingw-w64`
+2. Run the packaging script:
+   - `chmod +x scripts/build-windows.sh`
+   - `./scripts/build-windows.sh`
+3. Send this file to the Windows player:
+   - `.dist/windows/KiKigame.exe`
+
+Notes:
+- The script builds raylib for Windows first, then builds the game against that Windows library.
+- If raylib source is not already cached locally, the script downloads raylib `5.5` automatically.
+
 ## Next upgrades
 
 - Replace placeholder shapes with sprite sheets
